@@ -245,10 +245,11 @@ def chart_layout(fig, height=360):
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor=PLOT_BG,
         font=dict(family="DM Sans", color=LIGHT_GOLD, size=12),
-        margin=dict(l=10, r=10, t=36, b=10),
-        legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(size=11)),
-        xaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=11)),
-        yaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=11)),
+        title=dict(font=dict(color=GOLD, family="Playfair Display", size=15), x=0.01),
+        margin=dict(l=10, r=10, t=40, b=10),
+        legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color=LIGHT_GOLD, size=11)),
+        xaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=11, color=LIGHT_GOLD), title_font=dict(color=LIGHT_GOLD)),
+        yaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=11, color=LIGHT_GOLD), title_font=dict(color=LIGHT_GOLD)),
     )
     return fig
 
