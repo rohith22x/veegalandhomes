@@ -188,9 +188,18 @@ df_projects = pd.DataFrame({
 })
 
 df_segments = pd.DataFrame({
-    "Period":        ["FY23","FY23","FY23","FY24","FY24","FY24","FY25","FY25","FY25","H1 FY26","H1 FY26","H1 FY26","H1 FY26"],
-    "Segment":       ["Mid-Premium","Premium","Ultra-Premium","Mid-Premium","Premium","Ultra-Premium","Mid-Premium","Premium","Ultra-Premium","Mid-Premium","Premium","Ultra-Premium","Luxe"],
-    "Revenue":       [1927, 9309, 0, 70, 10314, 693, 911, 11044, 6957, 1141, 6081, 5144, 49],
+    "Period":   ["FY23","FY23","FY23","FY23",
+                 "FY24","FY24","FY24",
+                 "FY25","FY25","FY25","FY25",
+                 "H1 FY26","H1 FY26","H1 FY26","H1 FY26"],
+    "Segment":  ["Mid-Premium","Premium","Ultra-Premium","Ultra-Luxury",
+                 "Mid-Premium","Premium","Ultra-Premium",
+                 "Mid-Premium","Premium","Ultra-Premium","Ultra-Luxury",
+                 "Mid-Premium","Premium","Ultra-Premium","Luxe"],
+    "Revenue":  [1927, 9309, 0, -345,
+                 70, 10314, 693,
+                 911, 11044, 6957, 325,
+                 1141, 6081, 5144, 49],
 })
 
 df_marketing = pd.DataFrame({
@@ -544,12 +553,12 @@ elif "Sales" in page:
     col3, col4 = st.columns([3,2])
 
     with col3:
-        seg_order = ["Mid-Premium","Premium","Ultra-Premium","Luxe"]
-        seg_colors_map = {"Mid-Premium": BLUE, "Premium": MID_GREEN, "Ultra-Premium": GOLD, "Luxe": "#9C27B0"}
+        seg_order = ["Mid-Premium","Premium","Ultra-Premium","Ultra-Luxury","Luxe"]
+        seg_colors_map = {"Mid-Premium": BLUE, "Premium": MID_GREEN, "Ultra-Premium": GOLD, "Luxe": "#9C27B0", "Ultra-Luxury": "#E91E63"}
         fig3 = go.Figure()
         for seg in seg_order:
-            df_s = df_segments[df_segments["Segment"] == seg]
-            if not df_s.empty:
+            df_s = df_segments[df_segments["Segment"] == seg].copy()
+            if not df_s.empty and df_s["Revenue"].abs().sum() > 0:
                 fig3.add_bar(name=seg, x=df_s["Period"], y=df_s["Revenue"],
                              marker_color=seg_colors_map.get(seg, MUTED))
         fig3.update_layout(barmode="stack", title="Revenue by Segment (₹ Lakhs, Stacked)")
@@ -560,7 +569,7 @@ elif "Sales" in page:
         df_h1 = df_segments[df_segments["Period"] == "H1 FY26"].copy()
         df_h1 = df_h1[df_h1["Revenue"] > 0]
         fig4 = px.pie(df_h1, values="Revenue", names="Segment",
-                      color_discrete_sequence=[GOLD, MID_GREEN, BLUE, "#9C27B0"],
+                      color_discrete_map=seg_colors_map,
                       hole=0.5)
         fig4.update_traces(textfont_size=11)
         fig4.update_layout(title="H1 FY26 Segment Split")
