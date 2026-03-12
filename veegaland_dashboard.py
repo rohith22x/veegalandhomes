@@ -38,6 +38,18 @@ st.markdown(f"""
     background-color: {BG};
     color: {LIGHT_GOLD};
   }}
+  .stApp {{
+    background-color: {BG} !important;
+  }}
+  [data-testid="stAppViewContainer"] {{
+    background-color: {BG} !important;
+  }}
+  [data-testid="stHeader"] {{
+    background-color: {BG} !important;
+  }}
+  .main .block-container {{
+    background-color: {BG} !important;
+  }}
 
   /* Sidebar */
   section[data-testid="stSidebar"] {{
@@ -224,16 +236,19 @@ def kpi(label, value, sub="", trend=""):
 def insight(text):
     st.markdown(f'<div class="insight">{text}</div>', unsafe_allow_html=True)
 
+GRID_COLOR   = MUTED + "33"
+PLOT_BG      = DARK_GREEN + "55"
+
 def chart_layout(fig, height=360):
     fig.update_layout(
         height=height,
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor=f"{DARK_GREEN}55",
+        plot_bgcolor=PLOT_BG,
         font=dict(family="DM Sans", color=LIGHT_GOLD, size=12),
         margin=dict(l=10, r=10, t=36, b=10),
         legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(size=11)),
-        xaxis=dict(gridcolor=f"{MUTED}33", tickfont=dict(size=11)),
-        yaxis=dict(gridcolor=f"{MUTED}33", tickfont=dict(size=11)),
+        xaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=11)),
+        yaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=11)),
     )
     return fig
 
