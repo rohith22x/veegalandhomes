@@ -52,32 +52,36 @@ def load_data():
         "FY2023": "FY23", "FY2024": "FY24", "FY2025": "FY25", "H1_FY2026": "H1 FY26"
     }
     
-    # Process Dataframes
+    # Process Financials
     df_fin = data['fin'].copy()
     df_fin['Period'] = df_fin['Period'].map(period_map)
     
+    # Process Sales and detect Revenue column
     df_sales = data['sales'].copy()
     df_sales['Period'] = df_sales['Period'].map(period_map)
     
-    # FIX for Error 1: Ensure Revenue column is identified correctly
-    if 'Revenue_from_Operations_Lakhs' in df_sales.columns:
-        df_sales['Display_Revenue'] = df_sales['Revenue_from_Operations_Lakhs']
-    elif 'Revenue_Recognised_Lakhs' in df_sales.columns:
-        df_sales['Display_Revenue'] = df_sales['Revenue_Recognised_Lakhs']
+    # FIX: Robust Column Detection
+    possible_rev_cols = ['Revenue_from_Operations_Lakhs', 'Revenue_Recognised_Lakhs', 'Revenue']
+    found_col = next((c for c in possible_rev_cols if c in df_sales.columns), None)
+    
+    if found_col:
+        df_sales['Display_Revenue'] = df_sales[found_col]
     else:
-        # Fallback to revenue from the financial sheet if needed
+        # Fallback merge if column is missing from sales file
         df_sales = df_sales.merge(df_fin[['Period', 'Revenue_from_Operations_Lakhs']], on='Period', how='left')
         df_sales['Display_Revenue'] = df_sales['Revenue_from_Operations_Lakhs']
 
+    # Process Segments
     df_segments = data['segments'].copy()
     df_segments['Period'] = df_segments['Period'].map(period_map)
     df_segments['Segment'] = df_segments['Segment'].replace({"Luxe-Series": "Luxe"})
     
+    # Process Marketing
     df_marketing = data['marketing'].copy()
     df_marketing['Period'] = df_marketing['Period'].map(period_map)
     
+    # Process Projects
     df_projects = data['portfolio'][data['portfolio']['Status'] == 'Ongoing'].copy()
-    
     project_rev_h1_26 = {
         "Green Heights": 2916, "Maybell": 1114, "Green Fort": 1141, 
         "Green Capitol": 2587, "Queens Park": 567, "Casabella": 1388, 
@@ -89,65 +93,74 @@ def load_data():
 
 df_fin, df_sales, df_segments, df_projects, df_marketing = load_data()
 
-# ── FIX for Error 2 & 3: Standardize Plotly Layout ────────────────────────────
+# ── The Fixed Chart Layout Function ───────────────────────────────────────────
 
-def chart_layout(fig, height=350):
+def chart_layout(fig, height=360):
+    """
+    FIX: Direct variable usage. 
+    The strings are constructed using f-strings inside the function 
+    so Plotly receives a valid hex/rgba value.
+    """
     fig.update_layout(
         height=height,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="DM Sans", color=LIGHT_GOLD, size=12),
         margin=dict(l=10, r=10, t=40, b=10),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=LIGHT_GOLD),
-        title_font=dict(color=GOLD, size=16),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        xaxis=dict(showgrid=True, gridcolor='#333333'),
-        yaxis=dict(showgrid=True, gridcolor='#333333')
+        legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(size=11)),
+        xaxis=dict(
+            gridcolor=f"{MUTED}33",  # Correctly evaluates to #6B8C7333
+            tickfont=dict(size=11),
+            showgrid=True
+        ),
+        yaxis=dict(
+            gridcolor=f"{MUTED}33",  # Correctly evaluates to #6B8C7333
+            tickfont=dict(size=11),
+            showgrid=True
+        ),
     )
     return fig
 
-# ── UI ────────────────────────────────────────────────────────────────────────
-st.markdown(f"""
-<style>
-    .stMetric {{ background-color: {DARK_GREEN}; padding: 15px; border-radius: 10px; border-left: 5px solid {GOLD}; }}
-    [data-testid="stMetricLabel"] {{ color: {MUTED} !important; text-transform: uppercase; }}
-</style>
-""", unsafe_allow_html=True)
+# ── Sidebar & UI ──────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.title("🏠 Veegaland Analytics")
-    page = st.selectbox("Menu", ["Overview", "Projects", "Marketing"])
+    st.markdown(f"<h2 style='color:{GOLD};'>🏠 Veegaland Homes</h2>", unsafe_allow_html=True)
+    page = st.radio("Navigate", ["📊 Overview", "🏗 Projects", "💰 Marketing"])
 
-if page == "Overview":
-    st.header("Financial Performance")
+# ── Page Content ──────────────────────────────────────────────────────────────
+
+if "Overview" in page:
+    st.title("Business Overview")
     
-    # KPI metrics
-    latest = df_fin.iloc[-1]
+    # KPI Row
     c1, c2, c3 = st.columns(3)
+    latest = df_fin.iloc[-1]
     c1.metric("Revenue (H1 FY26)", f"₹{latest['Revenue_from_Operations_Lakhs']:,.0f} L")
-    c2.metric("PAT Margin", f"{latest['PAT_Margin_Pct']}%")
-    c3.metric("D/E Ratio", f"{latest['Debt_Equity_Ratio']}x")
+    c2.metric("EBITDA Margin", f"{latest['EBITDA_Margin_Pct']}%")
+    c3.metric("Debt/Equity", f"{latest['Debt_Equity_Ratio']}x")
 
-    # Fixed Bar Chart
+    # Grouped Bar Chart
     fig = go.Figure()
     fig.add_bar(name="Revenue Recognized", x=df_sales["Period"], y=df_sales["Display_Revenue"], marker_color=MID_GREEN)
-    fig.add_bar(name="Sales Bookings", x=df_sales["Period"], y=df_sales["Sales_Value_Lakhs_excl_GST"], marker_color=GOLD)
-    fig.update_layout(barmode='group', title="Revenue vs Bookings")
+    fig.add_bar(name="Sales Value", x=df_sales["Period"], y=df_sales["Sales_Value_Lakhs_excl_GST"], marker_color=GOLD)
+    fig.update_layout(barmode='group', title="Revenue vs. Sales Bookings")
     st.plotly_chart(chart_layout(fig), use_container_width=True)
 
-elif page == "Projects":
-    st.header("Project Portfolio")
-    df_p_sorted = df_projects.sort_values("Rev_H1FY26", ascending=True)
-    fig_p = px.bar(df_p_sorted, x="Rev_H1FY26", y="Project_Name", orientation='h', color_discrete_sequence=[GOLD])
+elif "Projects" in page:
+    st.title("Project Pipeline")
+    df_p = df_projects.sort_values("Rev_H1FY26", ascending=True)
+    fig_p = px.bar(df_p, x="Rev_H1FY26", y="Project_Name", orientation='h', color_discrete_sequence=[GOLD])
     st.plotly_chart(chart_layout(fig_p), use_container_width=True)
     st.dataframe(df_projects[['Project_Name', 'City', 'Pct_Sold', 'Rev_H1FY26']], use_container_width=True)
 
-elif page == "Marketing":
-    st.header("Marketing Spend Analysis")
+elif "Marketing" in page:
+    st.title("Marketing Spend")
     
-    # Fixed Marketing Charts
-    fig_m1 = px.bar(df_marketing, x="Period", y="Marketing_Sales_Spend_Lakhs", title="Spend per Period", color_discrete_sequence=[MID_GREEN])
-    st.plotly_chart(chart_layout(fig_m1), use_container_width=True)
-    
-    fig_m2 = px.line(df_marketing, x="Period", y="Pct_of_Revenue", title="Efficiency (% of Revenue)", markers=True)
-    fig_m2.update_traces(line_color=GOLD)
-    st.plotly_chart(chart_layout(fig_m2), use_container_width=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        fig1 = px.bar(df_marketing, x="Period", y="Marketing_Sales_Spend_Lakhs", title="Spend (₹ Lakhs)", color_discrete_sequence=[MID_GREEN])
+        st.plotly_chart(chart_layout(fig1), use_container_width=True)
+    with c2:
+        fig2 = px.line(df_marketing, x="Period", y="Pct_of_Revenue", title="Spend as % of Revenue", markers=True)
+        fig2.update_traces(line_color=GOLD)
+        st.plotly_chart(chart_layout(fig2), use_container_width=True)
