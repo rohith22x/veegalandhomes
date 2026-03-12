@@ -414,24 +414,50 @@ elif "Pipeline" in page:
     # Detailed table
     st.markdown('<div class="section-title">Ongoing Projects — Detail</div>', unsafe_allow_html=True)
 
-    def color_absorption(val):
-        if val >= 90:   return "color: #4CAF50; font-weight:600"
-        elif val >= 60: return f"color: {GOLD}; font-weight:600"
-        else:           return f"color: {RED}; font-weight:600"
-
     df_display = df_projects[["Project","City","Segment","Area_SqFt","Pct_Sold","Completion","Rev_H1FY26"]].copy()
-    df_display.columns = ["Project","City","Segment","Area (sqft)","% Sold","Completion","H1 FY26 Rev (₹L)"]
-    df_display["Area (sqft)"] = df_display["Area (sqft)"].apply(lambda x: f"{x:,}")
-    df_display["% Sold"] = df_display["% Sold"].apply(lambda x: f"{x:.1f}%")
-    df_display["H1 FY26 Rev (₹L)"] = df_display["H1 FY26 Rev (₹L)"].apply(lambda x: f"₹{x:,}")
-    df_display = df_display.sort_values("H1 FY26 Rev (₹L)", ascending=False)
+    df_display = df_display.sort_values("Rev_H1FY26", ascending=False).reset_index(drop=True)
 
-    st.dataframe(
-        df_display,
-        use_container_width=True,
-        hide_index=True,
-        height=360,
-    )
+    def pct_color(v):
+        if v >= 90:  return "#4CAF50"
+        elif v >= 60: return GOLD
+        else:        return RED
+
+    rows_html = ""
+    for _, r in df_display.iterrows():
+        pc = pct_color(r["Pct_Sold"])
+        rows_html += f"""
+        <tr>
+          <td>{r["Project"]}</td>
+          <td>{r["City"]}</td>
+          <td>{r["Segment"]}</td>
+          <td>{r["Area_SqFt"]:,}</td>
+          <td style="color:{pc};font-weight:600">{r["Pct_Sold"]:.1f}%</td>
+          <td>{r["Completion"]}</td>
+          <td style="color:{GOLD};font-weight:600">₹{r["Rev_H1FY26"]:,}</td>
+        </tr>"""
+
+    st.markdown(f"""
+    <style>
+    .proj-table {{ width:100%; border-collapse:collapse; font-size:13px; }}
+    .proj-table th {{
+        background:{DARK_GREEN}; color:{MUTED};
+        font-size:11px; letter-spacing:1px; text-transform:uppercase;
+        padding:10px 12px; border-bottom:1px solid {GOLD}44; text-align:left;
+    }}
+    .proj-table td {{
+        padding:9px 12px; color:{LIGHT_GOLD};
+        border-bottom:1px solid {DARK_GREEN};
+    }}
+    .proj-table tr:hover td {{ background:{DARK_GREEN}88; }}
+    </style>
+    <table class="proj-table">
+      <thead><tr>
+        <th>Project</th><th>City</th><th>Segment</th>
+        <th>Area (sqft)</th><th>% Sold</th><th>Completion</th><th>H1 FY26 Rev (₹L)</th>
+      </tr></thead>
+      <tbody>{rows_html}</tbody>
+    </table>
+    """, unsafe_allow_html=True)
 
     # City breakdown
     st.markdown('<div class="section-title">Portfolio by City</div>', unsafe_allow_html=True)
