@@ -193,6 +193,14 @@ df_segments = pd.DataFrame({
     "Revenue":       [1927, 9309, 0, 70, 10314, 693, 911, 11044, 6957, 1141, 6081, 5144, 49],
 })
 
+df_marketing = pd.DataFrame({
+    "Period":       ["FY23", "FY24", "FY25", "H1 FY26"],
+    "Spend":        [378.24, 881.47, 1331.2, 843.32],
+    "Pct_Revenue":  [3.47, 7.96, 6.92, 6.79],
+    "Revenue":      [10891, 11077, 19238, 12416],
+})
+df_marketing["Rev_per_Lakh"] = (df_marketing["Revenue"] / df_marketing["Spend"]).round(2)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # SIDEBAR
 # ══════════════════════════════════════════════════════════════════════════════
@@ -207,7 +215,7 @@ with st.sidebar:
 
     page = st.radio(
         "Navigate",
-        ["📊  Overview", "🏗  Project Pipeline", "💰  Sales & Revenue"],
+        ["📊  Overview", "🏗  Project Pipeline", "💰  Sales & Revenue", "📣  Marketing Spend"],
         label_visibility="collapsed"
     )
 
@@ -574,3 +582,100 @@ elif "Sales" in page:
     st.plotly_chart(chart_layout(fig5, 340), use_container_width=True)
 
     insight("<strong>Green Heights alone = ₹29 Cr</strong> in H1 FY26, more than double any other project. It is 97.7% sold and the biggest single revenue driver. Ultra-Premium projects are carrying the growth story.")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 4 — MARKETING SPEND
+# ══════════════════════════════════════════════════════════════════════════════
+
+elif "Marketing" in page:
+
+    st.markdown("""
+    <div class="page-header">
+      <h1>Marketing Spend Analysis</h1>
+      <p>Spend efficiency · Revenue ROI · Brand investment trend · FY23 – H1 FY26</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1: kpi("FY25 Marketing Spend", "₹13.3 Cr", "▲ 51% vs FY24", "up")
+    with c2: kpi("FY25 % of Revenue", "6.92%", "▼ from 7.96% in FY24", "up")
+    with c3: kpi("H1 FY26 Spend", "₹8.4 Cr", "On track, efficiency improving")
+    with c4: kpi("H1 FY26 Rev/₹1L Spend", f"₹{df_marketing.iloc[-1]['Rev_per_Lakh']:.1f}L", "Revenue generated per ₹1L spent")
+
+    insight("<strong>Spend is rising but efficiency is improving</strong> — FY24 saw peak spend intensity (8.0% of revenue). FY25 and H1 FY26 show the ratio declining even as absolute spend grows, meaning Veegaland is getting more revenue per marketing rupee.")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig = go.Figure()
+        fig.add_bar(
+            x=df_marketing["Period"], y=df_marketing["Spend"],
+            marker_color=[MUTED, BLUE, GOLD, MID_GREEN],
+            text=[f"₹{v:.0f}L" for v in df_marketing["Spend"]],
+            textposition="outside", textfont=dict(size=12, color=LIGHT_GOLD),
+            name="Marketing Spend"
+        )
+        fig.update_layout(title="Marketing Spend per Period (₹ Lakhs)", yaxis_title="₹ Lakhs")
+        st.plotly_chart(chart_layout(fig, 340), use_container_width=True)
+
+    with col2:
+        fig2 = go.Figure()
+        fig2.add_scatter(
+            x=df_marketing["Period"], y=df_marketing["Pct_Revenue"],
+            mode="lines+markers+text",
+            text=[f"{v:.2f}%" for v in df_marketing["Pct_Revenue"]],
+            textposition="top center",
+            line=dict(color=GOLD, width=3),
+            marker=dict(size=10, color=GOLD),
+            fill="tozeroy", fillcolor=GOLD_FILL,
+            name="% of Revenue"
+        )
+        fig2.update_layout(
+            title="Marketing Spend as % of Revenue",
+            yaxis=dict(ticksuffix="%", range=[0, 11])
+        )
+        st.plotly_chart(chart_layout(fig2, 340), use_container_width=True)
+
+    st.markdown('<div class="section-title">Spend vs Revenue — Overlay</div>', unsafe_allow_html=True)
+
+    col3, col4 = st.columns([3, 2])
+
+    with col3:
+        fig3 = go.Figure()
+        fig3.add_bar(
+            x=df_marketing["Period"], y=df_marketing["Revenue"],
+            name="Revenue (₹L)", marker_color=MID_GREEN,
+            text=[f"₹{v/100:.0f}Cr" for v in df_marketing["Revenue"]],
+            textposition="outside", textfont=dict(size=10)
+        )
+        fig3.add_scatter(
+            x=df_marketing["Period"], y=df_marketing["Spend"] * 10,
+            name="Spend ×10 (₹L)", mode="lines+markers",
+            line=dict(color=GOLD, width=3, dash="dot"),
+            marker=dict(size=9, color=GOLD),
+            yaxis="y"
+        )
+        fig3.update_layout(
+            title="Revenue vs Marketing Spend (Spend scaled ×10 for visibility)",
+            barmode="group", yaxis_title="₹ Lakhs"
+        )
+        st.plotly_chart(chart_layout(fig3, 360), use_container_width=True)
+
+    with col4:
+        fig4 = go.Figure()
+        fig4.add_scatter(
+            x=df_marketing["Period"], y=df_marketing["Rev_per_Lakh"],
+            mode="lines+markers+text",
+            text=[f"₹{v:.1f}L" for v in df_marketing["Rev_per_Lakh"]],
+            textposition="top center",
+            line=dict(color="#4CAF50", width=3),
+            marker=dict(size=10, color="#4CAF50"),
+            fill="tozeroy", fillcolor="rgba(76,175,80,0.08)"
+        )
+        fig4.update_layout(
+            title="Revenue per ₹1L Marketing Spend",
+            yaxis_title="₹ Lakhs generated",
+        )
+        st.plotly_chart(chart_layout(fig4, 360), use_container_width=True)
+
+    insight("<strong>FY23 efficiency was highest</strong> (₹{:.1f}L revenue per ₹1L spend) before brand-building investments ramped up in FY24. The trend is recovering — H1 FY26 at ₹{:.1f}L shows Veegaland's marketing is becoming more targeted and effective.".format(df_marketing.iloc[0]['Rev_per_Lakh'], df_marketing.iloc[-1]['Rev_per_Lakh']))
