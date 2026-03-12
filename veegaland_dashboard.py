@@ -28,6 +28,11 @@ RED         = "#C84A3A"
 BLUE        = "#2F5597"
 BG          = "#0D1F14"
 
+# Pre-computed rgba for Plotly (8-char hex not supported)
+GRID_COLOR   = "rgba(107,140,115,0.2)"
+PLOT_BG      = "rgba(26,58,42,0.33)"
+GOLD_FILL    = "rgba(200,151,58,0.08)"
+
 # ── Global CSS ────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
@@ -37,18 +42,6 @@ st.markdown(f"""
     font-family: 'DM Sans', sans-serif;
     background-color: {BG};
     color: {LIGHT_GOLD};
-  }}
-  .stApp {{
-    background-color: {BG} !important;
-  }}
-  [data-testid="stAppViewContainer"] {{
-    background-color: {BG} !important;
-  }}
-  [data-testid="stHeader"] {{
-    background-color: {BG} !important;
-  }}
-  .main .block-container {{
-    background-color: {BG} !important;
   }}
 
   /* Sidebar */
@@ -136,6 +129,16 @@ st.markdown(f"""
     margin: 0;
   }}
 
+  /* Force dark background */
+  .stApp {{
+    background-color: {BG} !important;
+  }}
+  [data-testid="stAppViewContainer"] {{
+    background-color: {BG} !important;
+  }}
+  [data-testid="stHeader"] {{
+    background-color: {BG} !important;
+  }}
   /* Hide default header */
   #MainMenu, footer, header {{ visibility: hidden; }}
   .block-container {{ padding-top: 1.5rem; }}
@@ -235,9 +238,6 @@ def kpi(label, value, sub="", trend=""):
 
 def insight(text):
     st.markdown(f'<div class="insight">{text}</div>', unsafe_allow_html=True)
-
-GRID_COLOR   = MUTED + "33"
-PLOT_BG      = DARK_GREEN + "55"
 
 def chart_layout(fig, height=360):
     fig.update_layout(
@@ -497,7 +497,7 @@ elif "Sales" in page:
                          textposition="top center",
                          line=dict(color=GOLD, width=3),
                          marker=dict(size=10, color=GOLD),
-                         fill="tozeroy", fillcolor=f"{GOLD}15")
+                         fill="tozeroy", fillcolor=GOLD_FILL)
         fig2.update_layout(title="Average Selling Price (₹/sqft)",
                            yaxis=dict(tickprefix="₹", range=[6000, 8500]))
         st.plotly_chart(chart_layout(fig2, 340), use_container_width=True)
