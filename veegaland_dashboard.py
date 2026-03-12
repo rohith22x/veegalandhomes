@@ -551,30 +551,66 @@ elif "Sales" in page:
     st.markdown('<div class="section-title">Segment Mix Evolution</div>', unsafe_allow_html=True)
     insight("<strong>Strategic shift:</strong> In FY23, 85% of revenue was Premium. By H1 FY26, Ultra-Premium is 41% and the new Luxe-Series has launched. Note: FY23 includes a ₹3.5 Cr Ultra-Luxury revenue reversal (cancellation); FY25 records ₹3.3 Cr Ultra-Luxury. Veegaland is deliberately moving upmarket — improving margins and brand positioning.")
 
+    seg_order = ["Mid-Premium","Premium","Ultra-Premium","Ultra-Luxury","Luxe"]
+    seg_colors_map = {"Mid-Premium": BLUE, "Premium": MID_GREEN, "Ultra-Premium": GOLD, "Luxe": "#9C27B0", "Ultra-Luxury": "#E91E63"}
+
+    # Segment glossary
+    st.markdown(f"""
+    <div style="display:flex; gap:16px; flex-wrap:wrap; margin:12px 0 16px 0; font-size:12px;">
+      <span><span style="color:{BLUE};">■</span> Mid-Premium — compact 900–1,300 sqft</span>
+      <span><span style="color:{MID_GREEN};">■</span> Premium — 1,270–2,579 sqft</span>
+      <span style="color:{GOLD};">■ Ultra-Premium — 1,800+ sqft boutique</span>
+      <span style="color:#E91E63;">■ Ultra-Luxury — legacy segment (Green Clouds; FY23 reversal &amp; FY25 entry)</span>
+      <span style="color:#9C27B0;">■ Luxe — new series, Flora (H1 FY26 launch)</span>
+    </div>
+    """, unsafe_allow_html=True)
+
     col3, col4 = st.columns([3,2])
 
     with col3:
-        seg_order = ["Mid-Premium","Premium","Ultra-Premium","Ultra-Luxury","Luxe"]
-        seg_colors_map = {"Mid-Premium": BLUE, "Premium": MID_GREEN, "Ultra-Premium": GOLD, "Luxe": "#9C27B0", "Ultra-Luxury": "#E91E63"}
         fig3 = go.Figure()
         for seg in seg_order:
             df_s = df_segments[df_segments["Segment"] == seg].copy()
-            if not df_s.empty and df_s["Revenue"].abs().sum() > 0:  # includes negative reversals
+            if not df_s.empty and df_s["Revenue"].abs().sum() > 0:
                 fig3.add_bar(name=seg, x=df_s["Period"], y=df_s["Revenue"],
                              marker_color=seg_colors_map.get(seg, MUTED))
-        fig3.update_layout(barmode="stack", title="Revenue by Segment (₹ Lakhs, Stacked) — incl. Ultra-Luxury")
-        st.plotly_chart(chart_layout(fig3, 360), use_container_width=True)
+        fig3.update_layout(
+            barmode="stack",
+            title="Revenue by Segment (₹ Lakhs, Stacked)",
+            annotations=[
+                dict(x="FY23", y=-345, text="Ultra-Luxury<br>reversal -₹345L", showarrow=True,
+                     arrowhead=2, ax=40, ay=40, font=dict(color="#E91E63", size=10),
+                     arrowcolor="#E91E63"),
+                dict(x="FY25", y=19600, text="Ultra-Luxury +₹325L", showarrow=True,
+                     arrowhead=2, ax=60, ay=-30, font=dict(color="#E91E63", size=10),
+                     arrowcolor="#E91E63"),
+            ]
+        )
+        st.plotly_chart(chart_layout(fig3, 400), use_container_width=True)
 
     with col4:
-        # H1 FY26 donut
         df_h1 = df_segments[df_segments["Period"] == "H1 FY26"].copy()
         df_h1 = df_h1[df_h1["Revenue"] > 0]
         fig4 = px.pie(df_h1, values="Revenue", names="Segment",
                       color_discrete_map=seg_colors_map,
                       hole=0.5)
-        fig4.update_traces(textfont_size=11)
-        fig4.update_layout(title="H1 FY26 Segment Split (Ultra-Luxury: nil)")
-        st.plotly_chart(chart_layout(fig4, 360), use_container_width=True)
+        fig4.update_traces(textfont_size=11, textposition="outside")
+        fig4.update_layout(title="H1 FY26 Segment Split")
+        st.plotly_chart(chart_layout(fig4, 400), use_container_width=True)
+
+    # Ultra-Luxury history callout
+    st.markdown(f"""
+    <div class="insight" style="border-left-color:#E91E63;">
+      <strong style="color:#E91E63;">Ultra-Luxury segment note:</strong>
+      FY23 shows a <strong>-₹345L reversal</strong> — a revenue cancellation from the Green Clouds project (completed 2016, ultra-luxury).
+      FY25 records <strong>+₹325L</strong> from a late Ultra-Luxury booking.
+      This segment has <strong>no ongoing or upcoming projects</strong> — Veegaland has pivoted to Ultra-Premium and the new Luxe series instead.
+      <br><br>
+      <strong>Luxe vs Ultra-Luxury:</strong> These are <em>different</em> segments.
+      Luxe (launched FY26) = mid-tier luxury, independent-floor layouts, 1,900–2,600 sqft, ₹9,000–10,000/sqft.
+      Ultra-Luxury = legacy top-tier (Green Clouds), no active pipeline.
+    </div>
+    """, unsafe_allow_html=True)
 
     # Project-wise revenue H1 FY26
     st.markdown('<div class="section-title">Project-wise Revenue — H1 FY26</div>', unsafe_allow_html=True)
