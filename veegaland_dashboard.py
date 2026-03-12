@@ -294,7 +294,7 @@ if "Overview" in page:
 
     st.markdown('<div class="section-title">Revenue · Bookings · Collections Gap</div>', unsafe_allow_html=True)
 
-    insight("<strong>Key Insight:</strong> Bookings (₹342 Cr FY25) far exceed recognised Revenue (₹192 Cr) — the ₹150 Cr gap is locked-in future revenue under POCM accounting. This is a leading indicator of financial health, not a problem.")
+    insight("<strong>Key Insight:</strong> Bookings (₹342 Cr FY25) far exceed recognised Revenue (₹192 Cr) — the ₹150 Cr gap is locked-in future revenue under POCM accounting. This is a leading indicator of financial health, not a problem. Revenue includes 5 segments: Mid-Premium, Premium, Ultra-Premium, Ultra-Luxury and Luxe.")
 
     col1, col2 = st.columns([3, 2])
 
@@ -403,7 +403,8 @@ elif "Pipeline" in page:
             "Ultra-Premium": GOLD,
             "Premium": MID_GREEN,
             "Mid-Premium": BLUE,
-            "Luxe": "#9C27B0"
+            "Luxe": "#9C27B0",
+            "Ultra-Luxury": "#E91E63"
         }
         fig2 = go.Figure()
         for seg, color in seg_colors.items():
@@ -548,7 +549,7 @@ elif "Sales" in page:
 
     # Segment evolution
     st.markdown('<div class="section-title">Segment Mix Evolution</div>', unsafe_allow_html=True)
-    insight("<strong>Strategic shift:</strong> In FY23, 85% of revenue was Premium. By H1 FY26, Ultra-Premium is 41% and Luxe-Series has launched. Veegaland is deliberately moving upmarket — improving margins and brand positioning.")
+    insight("<strong>Strategic shift:</strong> In FY23, 85% of revenue was Premium. By H1 FY26, Ultra-Premium is 41% and the new Luxe-Series has launched. Note: FY23 includes a ₹3.5 Cr Ultra-Luxury revenue reversal (cancellation); FY25 records ₹3.3 Cr Ultra-Luxury. Veegaland is deliberately moving upmarket — improving margins and brand positioning.")
 
     col3, col4 = st.columns([3,2])
 
@@ -558,10 +559,10 @@ elif "Sales" in page:
         fig3 = go.Figure()
         for seg in seg_order:
             df_s = df_segments[df_segments["Segment"] == seg].copy()
-            if not df_s.empty and df_s["Revenue"].abs().sum() > 0:
+            if not df_s.empty and df_s["Revenue"].abs().sum() > 0:  # includes negative reversals
                 fig3.add_bar(name=seg, x=df_s["Period"], y=df_s["Revenue"],
                              marker_color=seg_colors_map.get(seg, MUTED))
-        fig3.update_layout(barmode="stack", title="Revenue by Segment (₹ Lakhs, Stacked)")
+        fig3.update_layout(barmode="stack", title="Revenue by Segment (₹ Lakhs, Stacked) — incl. Ultra-Luxury")
         st.plotly_chart(chart_layout(fig3, 360), use_container_width=True)
 
     with col4:
@@ -572,7 +573,7 @@ elif "Sales" in page:
                       color_discrete_map=seg_colors_map,
                       hole=0.5)
         fig4.update_traces(textfont_size=11)
-        fig4.update_layout(title="H1 FY26 Segment Split")
+        fig4.update_layout(title="H1 FY26 Segment Split (Ultra-Luxury: nil)")
         st.plotly_chart(chart_layout(fig4, 360), use_container_width=True)
 
     # Project-wise revenue H1 FY26
@@ -590,7 +591,7 @@ elif "Sales" in page:
                        height=320)
     st.plotly_chart(chart_layout(fig5, 340), use_container_width=True)
 
-    insight("<strong>Green Heights alone = ₹29 Cr</strong> in H1 FY26, more than double any other project. It is 97.7% sold and the biggest single revenue driver. Ultra-Premium projects are carrying the growth story.")
+    insight("<strong>Green Heights alone = ₹29 Cr</strong> in H1 FY26, more than double any other project. It is 97.7% sold and the biggest single revenue driver. Ultra-Premium projects are carrying the growth story. Segment colours: <span style='color:#C8973A'>■ Ultra-Premium</span> &nbsp; <span style='color:#2A5A3A'>■ Premium</span> &nbsp; <span style='color:#2F5597'>■ Mid-Premium</span> &nbsp; <span style='color:#9C27B0'>■ Luxe</span>")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 4 — MARKETING SPEND
