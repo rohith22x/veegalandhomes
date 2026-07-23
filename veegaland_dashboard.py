@@ -140,7 +140,7 @@ st.markdown(f"""
     background-color: {BG} !important;
   }}
   /* Hide default header */
-  #MainMenu, footer, header {{ visibility: hidden; }}
+  #MainMenu, footer, {{ visibility: hidden; }}
   .block-container {{ padding-top: 1.5rem; }}
 </style>
 """, unsafe_allow_html=True)
